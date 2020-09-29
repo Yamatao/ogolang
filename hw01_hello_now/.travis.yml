@@ -1,0 +1,17 @@
+language: go
+
+go:
+  - 1.15.x
+
+env:
+  - GO11MODULE=on
+
+install:
+  - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.31.0
+
+script:
+  - echo "hi!"
+  - go mod download
+  - go run ./main.go
+  - golangci-lint run
+  - go test
