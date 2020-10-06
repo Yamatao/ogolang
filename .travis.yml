@@ -14,6 +14,8 @@ git:
 notifications:
   email: false
 
+cache: false
+
 env:
   global:
     - GO111MODULE=on
