@@ -1,4 +1,4 @@
-module github.com/yukigaru/ogolang/hw02_unpack_string
+module github.com/Yamatao/ogolang/hw02_unpack_string
 
 go 1.14
 
