@@ -6,9 +6,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Change to true if needed
-var taskWithAsteriskIsCompleted = false
-
 var text = `Как видите, он  спускается  по  лестнице  вслед  за  своим
 	другом   Кристофером   Робином,   головой   вниз,  пересчитывая
 	ступеньки собственным затылком:  бум-бум-бум.  Другого  способа
@@ -48,13 +45,56 @@ func TestTop10(t *testing.T) {
 		require.Len(t, Top10(""), 0)
 	})
 
-	t.Run("positive test", func(t *testing.T) {
-		if taskWithAsteriskIsCompleted {
-			expected := []string{"он", "а", "и", "что", "ты", "не", "если", "то", "его", "кристофер", "робин", "в"}
-			require.Subset(t, expected, Top10(text))
-		} else {
-			expected := []string{"он", "и", "а", "что", "ты", "не", "если", "-", "то", "Кристофер"}
-			require.ElementsMatch(t, expected, Top10(text))
-		}
+	t.Run("no letters - no words", func(t *testing.T) {
+		require.Len(t, Top10(` 324 #$5 @#^, .><:} }{ \" ; \' *( /)@!#0$ # $ % ^ *( !-~=`), 0)
+	})
+
+	t.Run("one word", func(t *testing.T) {
+		result := Top10("abc")
+		require.Equal(t, result, []string{"abc"})
+	})
+
+	t.Run("punctuation does not matter", func(t *testing.T) {
+		result := Top10(" a,    a    .b! c c . ")
+		expected := []string{"a", "b", "c"}
+		require.ElementsMatch(t, expected, result)
+	})
+
+	t.Run("case insensitivity", func(t *testing.T) {
+		result := Top10("Aaa aaA bBb BBB")
+		require.ElementsMatch(t, []string{"aaa", "bbb"}, result)
+	})
+
+	t.Run("frequency", func(t *testing.T) {
+		result := Top10("a b c d e f g h i j X X Y Y k l m n o p q r s t v u w")
+		require.Subset(t, result, []string{"x", "y"})
+		require.Len(t, result, 10)
+	})
+
+	t.Run("sorted order", func(t *testing.T) {
+		result := Top10("a e b e b e c e c e c d d d d")
+		require.ElementsMatch(t, result, []string{"e", "d", "c", "b", "a"})
+	})
+
+	t.Run("unicode", func(t *testing.T) {
+		result := Top10("Луц руЩ ∑ ‱ äöü")
+		require.ElementsMatch(t, []string{"луц", "рущ", "äöü"}, result)
+	})
+
+	t.Run("tight separation", func(t *testing.T) {
+		result := Top10("a.b,c!d$e")
+		require.ElementsMatch(t, []string{"a", "b", "c", "d", "e"}, result)
+	})
+
+	t.Run("inword separator", func(t *testing.T) {
+		result := Top10("a-aa aa-a a-a-a")
+		require.ElementsMatch(t, []string{"a-aa", "aa-a", "a-a-a"}, result)
+	})
+
+	t.Run("positive", func(t *testing.T) {
+		expected := []string{"он", "а", "и", "что", "ты", "не", "если", "то", "его", "кристофер", "робин", "в"}
+		result := Top10(text)
+		require.Subset(t, expected, result)
+		require.Len(t, result, 10)
 	})
 }
