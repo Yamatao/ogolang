@@ -20,12 +20,10 @@ func (v countedItems) Less(i, j int) bool {
 }
 
 func (v countedItems) Swap(i, j int) {
-	tmp := v.v[i]
-	v.v[i] = v.v[j]
-	v.v[j] = tmp
+	v.v[i], v.v[j] = v.v[j], v.v[i]
 }
 
-// Top10 returns the most frequent words in the text, but not more than 10
+// Top10 returns the most frequent words in the text, but not more than 10.
 func Top10(src string) []string {
 	counts := make(map[string]int, 32)
 	lastIsLetter := false
@@ -38,16 +36,14 @@ func Top10(src string) []string {
 		isLetter := unicode.IsLetter(r)
 		if isLetter {
 			wordb.WriteRune(unicode.ToLower(r))
-		} else {
-			if lastIsLetter {
-				if r != inwordChar {
-					// add the word to the `counts` map
-					counts[wordb.String()]++
-					wordb.Reset()
-				} else {
-					wordb.WriteRune(r)
-					lastIsLetter = true // '-' is considered as word's part
-				}
+		} else if lastIsLetter {
+			if r != inwordChar {
+				// add the word to the `counts` map
+				counts[wordb.String()]++
+				wordb.Reset()
+			} else {
+				wordb.WriteRune(r)
+				isLetter = true // '-' is considered as word's part
 			}
 		}
 		lastIsLetter = isLetter
