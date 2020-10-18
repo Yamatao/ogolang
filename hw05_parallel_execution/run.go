@@ -23,23 +23,22 @@ func Run(tasks []Task, N int, M int) error {
 	wg := sync.WaitGroup{}
 	stopAll := make(chan interface{})
 	worker := func(_ int, tasks <-chan Task, stop <-chan interface{}, errs chan<- error) {
+		defer wg.Done()
 		for active := true; active; {
 			select {
 			case task, ok := <-tasks:
-				if ok {
-					err := task()
-					if err != nil {
-						errs <- err
-						active = false
-					}
-				} else {
-					active = false
+				if !ok {
+					return
+				}
+				err := task()
+				if err != nil {
+					errs <- err
+					return
 				}
 			case <-stop:
-				active = false
+				return
 			}
 		}
-		wg.Done()
 	}
 
 	tasksChan, errsChan := make(chan Task), make(chan error)
@@ -50,7 +49,9 @@ func Run(tasks []Task, N int, M int) error {
 
 	// send tasks
 	numErrors := 0
-	for active, taskIdx := true, 0; active && taskIdx < len(tasks); {
+	defer wg.Wait()
+	defer close(tasksChan)
+	for taskIdx := 0; taskIdx < len(tasks); {
 		select {
 		case tasksChan <- tasks[taskIdx]:
 			taskIdx++
@@ -58,16 +59,9 @@ func Run(tasks []Task, N int, M int) error {
 			numErrors++
 			if numErrors == M || numErrors == N {
 				close(stopAll)
-				active = false
+				return ErrErrorsLimitExceeded
 			}
 		}
-	}
-
-	close(tasksChan)
-	wg.Wait()
-
-	if numErrors == M || numErrors == N {
-		return ErrErrorsLimitExceeded
 	}
 	return nil
 }
