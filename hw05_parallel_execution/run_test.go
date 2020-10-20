@@ -14,6 +14,42 @@ import (
 func TestRun(t *testing.T) {
 	defer goleak.VerifyNone(t)
 
+	t.Run("parallel run", func(t *testing.T) {
+		tasksCount := 4
+		tasks := make([]Task, 0)
+		for i := 0; i < tasksCount; i++ {
+			tasks = append(tasks, func() error {
+				time.Sleep(time.Millisecond * 100)
+				return nil
+			})
+		}
+
+		start := time.Now()
+		result := Run(tasks, tasksCount, 1)
+		duration := time.Since(start)
+
+		require.Nil(t, result)
+		require.InDelta(t, 100*time.Millisecond, duration, float64(2*time.Millisecond))
+	})
+
+	t.Run("queued run", func(t *testing.T) {
+		tasksCount := 4
+		tasks := make([]Task, 0)
+		for i := 0; i < tasksCount; i++ {
+			tasks = append(tasks, func() error {
+				time.Sleep(time.Millisecond * 100)
+				return nil
+			})
+		}
+
+		start := time.Now()
+		result := Run(tasks, 1, 1)
+		duration := time.Since(start)
+
+		require.Nil(t, result)
+		require.InDelta(t, 400*time.Millisecond, duration, float64(5*time.Millisecond))
+	})
+
 	t.Run("if were errors in first M tasks, than finished not more N+M tasks", func(t *testing.T) {
 		tasksCount := 50
 		tasks := make([]Task, 0, tasksCount)
