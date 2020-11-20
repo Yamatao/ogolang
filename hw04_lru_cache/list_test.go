@@ -6,18 +6,95 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type testStruct struct {
+	value int
+}
+
 func TestList(t *testing.T) {
 	t.Run("empty list", func(t *testing.T) {
 		l := NewList()
-
 		require.Equal(t, 0, l.Len())
 		require.Nil(t, l.Front())
 		require.Nil(t, l.Back())
 	})
 
+	t.Run("add one", func(t *testing.T) {
+		l := NewList()
+		ts := testStruct{1}
+		li := l.PushBack(ts)
+		require.Equal(t, 1, l.Len())
+		require.Equal(t, li, l.Front())
+		require.Equal(t, li, l.Back())
+	})
+
+	t.Run("add one, remove", func(t *testing.T) {
+		l := NewList()
+		ts := testStruct{0}
+		item := l.PushBack(ts)
+		require.Equal(t, item, l.Front())
+		require.Equal(t, item, l.Back())
+		l.Remove(item)
+		require.Equal(t, 0, l.Len())
+		require.Nil(t, l.Front())
+		require.Nil(t, l.Back())
+	})
+
+	t.Run("add two, remove", func(t *testing.T) {
+		l := NewList()
+		item1 := l.PushBack(testStruct{1})
+		item2 := l.PushBack(testStruct{2})
+		require.Equal(t, 2, l.Len())
+		require.Equal(t, item1, l.Front())
+		require.Equal(t, item2, l.Back())
+
+		l.Remove(item1)
+		require.Equal(t, 1, l.Len())
+		require.Equal(t, item2, l.Front())
+		require.Equal(t, item2, l.Back())
+
+		l.InsertBefore(item1, item2)
+		require.Equal(t, 2, l.Len())
+		require.Equal(t, item1, l.Front())
+		require.Equal(t, item2, l.Back())
+	})
+
+	t.Run("move to front", func(t *testing.T) {
+		l := NewList()
+		item1 := l.PushBack(testStruct{1})
+		item2 := l.PushBack(testStruct{2})
+
+		l.MoveToFront(item2)
+		require.Equal(t, 2, l.Len())
+		require.Equal(t, item2, l.Front())
+		require.Equal(t, item1, l.Back())
+	})
+
+	t.Run("push front", func(t *testing.T) {
+		l := NewList()
+		l.PushFront(1)
+		l.PushFront(2)
+		l.PushFront(3)
+		require.Equal(t, l.Front().Value.(int), 3)
+		require.Equal(t, l.Front().Next.Value.(int), 2)
+		require.Equal(t, l.Back().Value.(int), 1)
+		require.Equal(t, l.Back().Prev.Value.(int), 2)
+	})
+
+	t.Run("pop back", func(t *testing.T) {
+		l := NewList()
+		l.PushBack(1)
+		l.PushBack(2)
+		l.PushBack(3)
+		l.PopBack()
+		require.Equal(t, 2, l.Len())
+		require.Equal(t, l.Back().Value.(int), 2)
+		l.PopBack()
+		l.PopBack()
+		require.Equal(t, 0, l.Len())
+	})
+
 	t.Run("complex", func(t *testing.T) {
 		l := NewList()
-
 		l.PushFront(10) // [10]
 		l.PushBack(20)  // [10, 20]
 		l.PushBack(30)  // [10, 20, 30]
