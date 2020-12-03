@@ -5,6 +5,7 @@ import (
     "io"
     "fmt"
     "time"
+    "errors"
 )
 
 const (
@@ -25,20 +26,28 @@ func Copy(fromPath string, toPath string, offset, limit int64) error {
     }
     defer srcFile.Close()
 
-    // get the file size
-    srcSize, err := srcFile.Seek(0, 2) // at the ending
-    if err != nil {
-        return fmt.Errorf("failed to seek in source file: %v", err)
+    srcStats, _ := srcFile.Stat()
+    regularFile := srcStats.Mode().IsRegular()
+
+    if !regularFile && limit == 0 {
+        return errors.New("limit should be >0 for irregular files")
     }
 
-    if offset > srcSize {
-        return fmt.Errorf("offset %d exceeds file size %d", offset, srcSize)
-    }
-
-    // seek to the beginning of the source file
-    _, err = srcFile.Seek(offset, 0)
-    if err != nil {
-        return fmt.Errorf("failed to seek back in source file: %v", err)
+    var srcSize int64 = 0
+    if regularFile {
+        // get the file size
+        srcSize, err = srcFile.Seek(0, 2) // at the ending
+        if err != nil {
+            return fmt.Errorf("failed to seek in source file: %v", err)
+        }
+        if offset > srcSize {
+            return fmt.Errorf("offset %d exceeds file size %d", offset, srcSize)
+        }
+        // seek to the beginning of the source file
+        _, err = srcFile.Seek(offset, 0)
+        if err != nil {
+            return fmt.Errorf("failed to seek back in source file: %v", err)
+        }
     }
 
     dstFile, err := os.Create(toPath)
@@ -47,11 +56,12 @@ func Copy(fromPath string, toPath string, offset, limit int64) error {
     }
     defer dstFile.Close()
 
+    // some preparations
     if limit == 0 {
         limit = srcSize - offset
     }
     totalBytes := limit
-    if totalBytes > srcSize {
+    if regularFile && totalBytes > srcSize {
         totalBytes = srcSize
     }
     var readCount int64 = 0
@@ -80,7 +90,7 @@ func Copy(fromPath string, toPath string, offset, limit int64) error {
         readCount += n_
 
         PrintProgress(float32(readCount), float32(totalBytes))
-        time.Sleep(170 * time.Millisecond)
+        time.Sleep(80 * time.Millisecond)
     }
 
 	return nil
