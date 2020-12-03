@@ -2,6 +2,8 @@ package main
 
 import (
 	"flag"
+    "fmt"
+    "os"
 )
 
 var (
@@ -16,7 +18,25 @@ func init() {
 	flag.Int64Var(&offset, "offset", 0, "offset in input file")
 }
 
+func Usage() {
+    fmt.Println("Usage:")
+    fmt.Println(os.Args[0], " -from <source-path> -to <dest-path> [-limit N] [-offset M] - copy file content from <source-path> to <dest-path> skipping first M bytes, limiting write by N bytes")
+    flag.PrintDefaults()
+
+}
+
 func main() {
 	flag.Parse()
-	// Place your code here
+
+    if from == "" || to == "" {
+        Usage()
+        return
+    }
+
+    err := Copy(from, to, offset, limit)
+    if err != nil {
+        fmt.Printf("Error: %v\n", err)
+        return
+    }
+    fmt.Println("Done!")
 }
