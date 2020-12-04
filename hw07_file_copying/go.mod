@@ -1,4 +1,4 @@
-module github.com/yamatao/ogolang/hw07_file_copying
+module github.com/Yamatao/ogolang/hw07_file_copying
 
 go 1.14
 
