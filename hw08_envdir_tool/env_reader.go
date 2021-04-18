@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path"
 	"strings"
@@ -24,7 +25,7 @@ func (e Environment) AsArray() []string {
 // ReadDir reads a specified directory and returns map of env variables.
 // Variables represented as files where filename is name of variable, file first line is a value.
 func ReadDir(dirpath string) (env Environment, retErr error) {
-	entries, err := os.ReadDir(dirpath)
+	entries, err := ioutil.ReadDir(dirpath)
 	if err != nil {
 		retErr = err
 		return
@@ -33,7 +34,7 @@ func ReadDir(dirpath string) (env Environment, retErr error) {
 	env = make(Environment)
 
 	for _, entry := range entries {
-		if !entry.Type().IsRegular() {
+		if !entry.Mode().IsRegular() {
 			continue
 		}
 		// имя `S` не должно содержать `=`
@@ -41,7 +42,7 @@ func ReadDir(dirpath string) (env Environment, retErr error) {
 			continue
 		}
 
-		value, err := os.ReadFile(path.Join(dirpath, entry.Name()))
+		value, err := ioutil.ReadFile(path.Join(dirpath, entry.Name()))
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to read file '%s': %v\n", entry.Name(), err)
 			continue

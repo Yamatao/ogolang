@@ -12,13 +12,8 @@ func TestReadDir(t *testing.T) {
 		_, err := ReadDir("/some/wrong/path/")
 		require.NotNil(t, err)
 
-		// empty dir
-		env, err := ReadDir("./testdata/emptydir")
-		require.Equal(t, len(env), 0)
-		require.Nil(t, err)
-
 		// doesn't take dirs, links and files with =
-		env, err = ReadDir("./testdata/notfiles")
+		env, err := ReadDir("./testdata/notfiles")
 		require.Equal(t, len(env), 0)
 		require.Nil(t, err)
 	})
