@@ -5,13 +5,17 @@ linters:
   disable-all: false
   enable-all: true
   disable:
+    - cyclop
     - goerr113
     - gochecknoglobals
     - gochecknoinits
+    - gocognit
     - godox
     - gofumpt
     - gomnd
+    - funlen
     - lll
     - nakedret
     - nlreturn
+    - revive
     - wsl
